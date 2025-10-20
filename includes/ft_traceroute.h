@@ -20,6 +20,9 @@ struct s_traceroute_rts {
 	int	port;
 	int	sockfd;
 
+	char	*origin_dest;
+	struct addrinfo		dest_info;
+	struct sockaddr_in	dest_addr;
 };
 
 /* traceroute_output.c */
@@ -28,4 +31,7 @@ void	print_error(int errnum, char *errmsg);
 
 /* utils.c */
 int	parse_options(t_tr_rts *rts, int ac, char **av);
+
+/* init.c */
+void	init(t_tr_rts *rts);
 #endif
