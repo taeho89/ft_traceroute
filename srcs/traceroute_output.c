@@ -4,7 +4,8 @@ void	print_error(int errnum, char *errmsg) {
 	fprintf(stderr, "ft_traceroute: ");
 
 	if (errnum)
-		fprintf(stderr, "%s", strerror(errnum));
+		perror("error");
+		// fprintf(stderr, "%s", strerror(errnum));
 	else
 		fprintf(stderr, "%s", errmsg);
 	fprintf(stderr, "\n");

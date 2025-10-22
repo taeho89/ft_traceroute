@@ -41,3 +41,31 @@ void	exit_with_error(int status, int errnum, char *errmsg) {
 	print_error(errnum, errmsg);
 	exit(status);
 }
+
+void	ft_memset(void *s, int c, int n) {
+	char	*p = s;
+
+	for (int i = 0; i < n; i++) {
+		p[i] = c;
+	}
+}
+
+void	ft_memcpy(void *s1, void *s2, int n) {
+	char	*p1 = s1;
+	char	*p2 = s2;
+
+	for (int i = 0; i < n; i++) {
+		p1[i] = p2[i];
+	}
+}
+
+int	ft_strncmp(char *s1, char *s2, int n) {
+	int	i;
+
+	for (i = 0; i < n; i++) {
+		if (s1[i] != s2[i]) {
+			return s1[i] - s2[i];
+		}
+	}
+	return 0;
+}
