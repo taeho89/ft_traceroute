@@ -1,18 +1,20 @@
 #include "../includes/ft_traceroute.h"
+#include <netinet/in.h>
 #include <netinet/ip_icmp.h>
 #include <sys/time.h>
+#include <arpa/inet.h>
 
 void	recv_packet(t_tr_rts *rts);
-void	parse_response(char *buf, int buf_size);
+void	parse_response(char *buf, int buf_size, double rtt);
 
 int	main(int ac, char **av) {
 	t_tr_rts	rts;
 
 	ft_memset(&rts, 0, sizeof(t_tr_rts));
+	rts.origin_dest = av[1];
 	parse_options(&rts, ac, av);
 	
-	rts.origin_dest = av[1];
-	// init(&rts);
+	init(&rts);
 
 	rts.sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	if (rts.sockfd == -1) {
@@ -20,6 +22,13 @@ int	main(int ac, char **av) {
 		return 1;
 	}
 
+	char source[256];
+	struct sockaddr_in	sa = rts.dest_addr;
+	if (!inet_ntop(AF_INET, &sa.sin_addr, source, INET_ADDRSTRLEN)) {
+		perror("inet_ntop");
+		return 1;
+	}
+	printf("dest ip: %s\n", source);
 	// TODO: main_loop()
 	char packet[64];
 	for (int ttl = 1; ttl <= DFL_TTL; ttl++) {
@@ -36,15 +45,23 @@ int	main(int ac, char **av) {
 				&ttl,
 				sizeof(ttl)
 			);
+			if (res < 0) {
+				perror("setsockopt");
+			}
 			
 			// send_packet();
 			int	socklen = sizeof(rts.dest_addr);
-			sendto(rts.sockfd, packet, sizeof(packet), 0,
+			res = sendto(rts.sockfd, packet, sizeof(packet), 0,
 				(struct sockaddr *)&rts.dest_addr, socklen);
+			if (res < 0) {
+				perror("sendto");
+				continue ;
+			}
 			rts.seq++;
 			gettimeofday(&rts.send_time, NULL);
 			// recv_packet();
 			recv_packet(&rts);
+			usleep(500000);
 		}
 		printf("\n");
 	}
@@ -63,37 +80,55 @@ void	recv_packet(t_tr_rts *rts) {
 	timeout.tv_sec = 3;
 	timeout.tv_usec= 0;
 	struct timeval	recv_time;
-	int	count = select(4, &r, NULL, NULL, &timeout);
-	if (count > 0) {
-		gettimeofday(&recv_time, NULL);
-		double	rtt = (recv_time.tv_sec - rts->send_time.tv_sec) * 1000.0;
-		rtt += (recv_time.tv_usec - rts->send_time.tv_usec) / 1000.0;
-		int	sender = recvfrom(
-			rts->sockfd,
-			recv_packet,
-			sizeof(recv_packet),
-			0,
-			NULL,
-			NULL);
-		// print apcket result;
-		printf("%.2f ", rtt);
-		parse_response(recv_packet, sizeof(recv_packet));
-		// print_response(&recv_packet, sizeof(recv_packet));
+	while (1) {
+		int	count = select(rts->sockfd + 1, &r, NULL, NULL, &timeout);
+		if (count > 0) {
+			gettimeofday(&recv_time, NULL);
+			double	rtt = (recv_time.tv_sec - rts->send_time.tv_sec) * 1000.0;
+			rtt += (recv_time.tv_usec - rts->send_time.tv_usec) / 1000.0;
+			int	sender = recvfrom(
+				rts->sockfd,
+				recv_packet,
+				sizeof(recv_packet),
+				0,
+				NULL,
+				NULL);
+			// print apcket result;
+			struct iphdr	ip;
+			struct icmphdr	icmp;
+
+			ft_memcpy(&ip, recv_packet, sizeof(ip));
+			ft_memcpy(&icmp, recv_packet + ip.ihl * 4, sizeof(icmp));
+			if (icmp.type == ICMP_ECHO) continue ;
+			parse_response(recv_packet, sizeof(recv_packet), rtt);
+			break ;
+			// print_response(&recv_packet, sizeof(recv_packet));
+		}
+		if (count < 0) {
+			perror("No response\n");
+			return ;
+		}
 	}
 }
 
-void	parse_response(char *buf, int buf_size) {
+void	parse_response(char *buf, int buf_size, double rtt) {
 	struct iphdr	ip;
 	struct icmphdr	icmp;
 
 	ft_memcpy(&ip, buf, sizeof(ip));
 	ft_memcpy(&icmp, buf + ip.ihl * 4, sizeof(icmp));
-	if (icmp.type == ICMP_ECHOREPLY) {
-		printf("Echo Reply accepted | ");
-	} else if (icmp.type == ICMP_TIME_EXCEEDED) {
+	if (icmp.type == ICMP_ECHO) return ;
+	printf("%.2f ", rtt);
+	printf("ttl: %d ", ip.ttl);
+	if (icmp.type == ICMP_ECHOREPLY)
+		printf("Echo Reply | ");
+	else if (icmp.type == ICMP_TIME_EXCEEDED) {
 		printf("Echo Time Exceeded accepted | ");
 	} else {
 		printf("ICMP type: %d | ", icmp.type);
 	}
+	char	source[256];
+	inet_ntop(AF_INET, &ip.saddr, source, INET_ADDRSTRLEN);
+	printf("source: %s ", source);
 }
 
