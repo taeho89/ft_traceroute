@@ -7,6 +7,10 @@
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <netdb.h>
+# include <netinet/in.h>
+# include <netinet/ip_icmp.h>
+# include <sys/time.h>
+# include <arpa/inet.h>
 # include "utils.h"
 
 # define DFL_TTL 30
@@ -19,6 +23,7 @@ struct s_traceroute_rts {
 	int	probe_per_hop;
 	int	port;
 	int	sockfd;
+	int	recv_sockfd;
 	int	pid;
 	int	seq;
 
@@ -32,6 +37,7 @@ struct s_traceroute_rts {
 /* traceroute_output.c */
 void	print_help();
 void	print_error(int errnum, char *errmsg);
+void	print_recv_result(struct iphdr *ip, struct icmphdr *icmp, double rtt);
 
 /* utils.c */
 int	parse_options(t_tr_rts *rts, int ac, char **av);
