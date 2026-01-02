@@ -2,14 +2,6 @@
 
 void	check_timeout(t_slot *slots, int max_ttl, int probe_per_hop, int timeout);
 
-void	print_slots(t_slot *slots, int size) {
-	for (int i = 0; i < size; i++) {
-		if (!slots[i].is_active) {
-			continue ;
-		}
-		printf("[%d] ttl: %d seq: %d\n", i, slots[i].ttl, slots[i].seq);
-	}
-}
 void	main_loop(t_tr_rts *rts) {
 	int	next_to_print = 0;
 
@@ -19,13 +11,13 @@ void	main_loop(t_tr_rts *rts) {
 		// print_slots(rts->inflight, rts->probe_per_hop * rts->max_ttl);
 
 		// TODO: 응답 대기 및 수신
-		recv_packet(rts);
+		int	dst_ttl = recv_packet(rts);
 
 		check_timeout(rts->inflight, rts->max_ttl, rts->probe_per_hop, rts->timeout);
 
 		// TODO: 출력
-		next_to_print += print_log(rts->inflight, rts->probe_per_hop, next_to_print);
-		if (next_to_print > 30) return ;
+		next_to_print += print_log(rts->inflight, rts->probe_per_hop, next_to_print, dst_ttl);
+		if (dst_ttl > 0 || rts->ttl > rts->max_ttl) return ;
 
 		usleep(1000);
 	}

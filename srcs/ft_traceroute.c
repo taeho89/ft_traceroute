@@ -12,22 +12,9 @@ int	main(int ac, char **av) {
 	
 	init(&rts);
 
-	rts.sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (rts.sockfd == -1) {
-		perror("error in creating socket");
-		return 1;
-	}
 	rts.recv_sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	if (rts.recv_sockfd == -1) {
 		perror("error in creating socket");
-		return 1;
-	}
-	struct sockaddr_in	local;
-	local.sin_family = AF_INET;
-	local.sin_addr.s_addr = htonl(INADDR_ANY);
-	local.sin_port = htons(55000);
-	if (bind(rts.sockfd, (struct sockaddr *)&local, sizeof(local)) < 0) {
-		perror("bind");
 		return 1;
 	}
 
@@ -37,7 +24,7 @@ int	main(int ac, char **av) {
 		perror("inet_ntop");
 		return 1;
 	}
-	printf("dest ip: %s\n", source);
+	printf("traceroute to %s (%s), %d hops max, %d byte packets\n", av[1], source, rts.max_ttl, 60);
 
 	main_loop(&rts);
 
