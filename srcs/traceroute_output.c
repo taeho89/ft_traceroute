@@ -1,4 +1,5 @@
 #include "../includes/ft_traceroute.h"
+#include <netinet/in.h>
 #include <netinet/ip_icmp.h>
 
 void	print_error(int errnum, char *errmsg) {
@@ -41,4 +42,44 @@ void	print_recv_result(struct iphdr *ip, struct icmphdr *icmp, double rtt) {
 		printf("%s ", source);
 	printf("%.3fms ", rtt);
 	fflush(stdout);
+}
+
+int	print_log(t_slot *slots, int probe_per_hop, int next_to_print) {
+	int	print_count = 0;
+
+	for (int i = next_to_print; i < MAX_INFLIGHT + next_to_print; i++) {
+	// while (!(slots + next_to_print)->is_active) {
+		// printf("is active: %d\n", (slots + next_to_print)->is_active);
+		if (slots[i].is_active) break ;
+		if (!(slots[i].seq % probe_per_hop)) {
+			printf("%2d ", slots[i].ttl);
+
+			if (!slots[i].is_timeout) {
+				char	host[256];
+				char	ip[256];
+
+				inet_ntop(AF_INET, &slots[i].ip_address, ip, INET_ADDRSTRLEN);
+				getnameinfo((struct sockaddr *)&slots[i].ip_address, sizeof(slots[i].ip_address), host, sizeof(host), NULL, 0, 0);
+
+				// 주소 출력
+				printf("%s (%s) ", host, ip);
+			}
+		}
+		if (!slots[i].is_timeout) {
+			float	rtt;
+
+			rtt = (slots[i].recv_time.tv_sec - slots[i].sent_time.tv_sec) * 1000.0;
+			rtt += (slots[i].recv_time.tv_usec - slots[i].sent_time.tv_usec) / 1000.0;
+			printf(" %.3f ms ", rtt);
+			print_count++;
+		} else {
+			printf(" *");
+			print_count++;
+		}
+		if (slots[i].seq % probe_per_hop == probe_per_hop - 1) {
+			printf("\n");
+		}
+	}
+	// printf("printC: %d\n", print_count);
+	return print_count;
 }

@@ -7,6 +7,8 @@ SRC_DIR = srcs/
 SRCS =	\
 		ft_traceroute.c	\
 		traceroute_output.c	\
+		main_loop.c		\
+		packet.c		\
 		icmp.c			\
 		init.c			\
 		utils.c

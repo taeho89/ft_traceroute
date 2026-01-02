@@ -21,4 +21,16 @@ void	init(t_tr_rts *rts) {
 
 	rts->pid = getpid();
 	rts->seq = 0;
+
+	rts->ttl = 1;
+	rts->max_ttl = DFL_MAX_TTL;
+	rts->probe_per_hop = DFL_PROBE_PER_HOB;
+	rts->timeout = DFL_TIMEOUT;
+
+	rts->inflight = malloc(rts->max_ttl * rts->probe_per_hop * sizeof(t_slot));
+	if (!rts->inflight) {
+		perror("malloc failed");
+		exit(1);
+	}
+	ft_memset(rts->inflight, 0, rts->max_ttl * rts->probe_per_hop * sizeof(t_slot));
 }
