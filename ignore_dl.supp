@@ -1,0 +1,9 @@
+{
+   ignore_dl_reachable
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   obj:*/ld-*.so*
+   obj:*/ld-*.so*
+   obj:*/ld-*.so*
+}
