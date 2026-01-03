@@ -1,34 +1,33 @@
 #include "../includes/ft_traceroute.h"
 
-void	check_timeout(t_slot *slots, int max_ttl, int probe_per_hop, int timeout);
+void	check_timeout(t_slot *slots, int slot_size, int timeout);
 
 void	main_loop(t_tr_rts *rts) {
-	int	next_to_print = 0;
+	int	ni;	// next_index
+	int	dst_ttl;
 
+	ni = 0;
 	while (1) {
-		// TODO: 송신
+		// 송신
 		send_packet(rts);
-		// print_slots(rts->inflight, rts->probe_per_hop * rts->max_ttl);
 
-		// TODO: 응답 대기 및 수신
-		int	dst_ttl = recv_packet(rts);
+		// 응답 대기 및 수신
+		dst_ttl = recv_packet(rts);
 
-		check_timeout(rts->inflight, rts->max_ttl, rts->probe_per_hop, rts->timeout);
+		check_timeout(rts->inflight, rts->slot_size, rts->timeout);
 
-		// TODO: 출력
-		next_to_print += print_log(rts->inflight, rts->probe_per_hop, next_to_print, dst_ttl);
+		// 출력
+		ni += print_log(rts->inflight, rts->slot_size, rts->pph, ni, dst_ttl);
 		if (dst_ttl > 0 || rts->ttl > rts->max_ttl) return ;
-
-		usleep(1000);
 	}
 }
 
-void	check_timeout(t_slot *slots, int max_ttl, int probe_per_hop, int timeout) {
-	float rtt;
+void	check_timeout(t_slot *slots, int slot_size, int timeout) {
 	struct timeval	tv;
+	float 			rtt;
 
 	gettimeofday(&tv, NULL);
-	for (int i = 0; i < max_ttl * probe_per_hop; i++) {
+	for (int i = 0; i < slot_size; i++) {
 		if (!slots[i].is_active) continue ;
 		rtt = (tv.tv_sec - slots[i].sent_time.tv_sec) * 1000.0;
 		rtt += (tv.tv_usec - slots[i].sent_time.tv_usec) / 1000.0;
@@ -38,4 +37,3 @@ void	check_timeout(t_slot *slots, int max_ttl, int probe_per_hop, int timeout) {
 		}
 	}
 }
-

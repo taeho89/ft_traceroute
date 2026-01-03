@@ -1,8 +1,11 @@
 #include "../includes/ft_traceroute.h"
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
+#include <errno.h>
 
 void	init(t_tr_rts *rts) {
+	// 목적지 정보 받아오기
 	struct addrinfo *info;
 	struct addrinfo hints;
 
@@ -10,27 +13,39 @@ void	init(t_tr_rts *rts) {
 	hints.ai_protocol = IPPROTO_UDP;
 	int rc = getaddrinfo(rts->origin_dest, NULL, NULL, &info);
 	if (rc < 0) {
-		perror("error in getaddrinfo");
+		print_error(rts->origin_dest, 0, gai_strerror(rc));
+		printf("Cannot handle \"%s\" cmd line arg `%s\' on position %d (argc %d)\n", "host", "as", 1, 1);
+		exit(2);
+		// exit_with_error(2, rts->origin_dest, 0, gai_strerror(rc));
+		// exit_with_error(2, errno, gai_strerror(errno));
+		// perror("error in getaddrinfo");
 	}
-	// printf("ip: %s\n", rts->dest_addr)
 	ft_memcpy(&rts->dest_addr, info->ai_addr, info->ai_addrlen);
-	rts->port = 33434;
 	rts->dest_addr.sin_port = htons(33434);
 
-	// inet_pton(AF_INET, rts->origin_dest, &rts->dest_addr);
+	freeaddrinfo(info);
 
-	rts->pid = getpid();
-	rts->seq = 0;
-
-	rts->ttl = 1;
+	// 기본 값 설정
 	rts->max_ttl = DFL_MAX_TTL;
-	rts->probe_per_hop = DFL_PROBE_PER_HOB;
+	rts->pph = DFL_PROBE_PER_HOB;
 	rts->timeout = DFL_TIMEOUT;
+	rts->pid = getpid();
 
-	rts->inflight = malloc(rts->max_ttl * rts->probe_per_hop * sizeof(t_slot));
+	rts->port = 33434;
+	rts->seq = 0;
+	rts->ttl = 1;
+
+	// Inlfight 배열 초기화
+	rts->slot_size = rts->max_ttl * rts->pph;
+	rts->inflight = malloc(rts->slot_size * sizeof(t_slot));
 	if (!rts->inflight) {
-		perror("malloc failed");
-		exit(1);
+		exit_with_error(1, NULL, errno, NULL);
 	}
-	ft_memset(rts->inflight, 0, rts->max_ttl * rts->probe_per_hop * sizeof(t_slot));
+	ft_memset(rts->inflight, 0, rts->slot_size * sizeof(t_slot));
+
+	// 응답 패킷 초기화
+	rts->recv_sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+	if (rts->recv_sockfd == -1) {
+		exit_with_error(1, NULL, errno, NULL);
+	}
 }

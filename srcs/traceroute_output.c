@@ -2,14 +2,17 @@
 #include <netinet/in.h>
 #include <netinet/ip_icmp.h>
 
-void	print_error(int errnum, char *errmsg) {
-	fprintf(stderr, "ft_traceroute: ");
+void	print_error(char *arg, int errnum, const char *errmsg) {
+	if (arg) 
+		fprintf(stderr, "%s: ", arg);
+	else
+		fprintf(stderr, "ft_traceroute: ");
 
 	if (errnum)
-		perror("error");
-		// fprintf(stderr, "%s", strerror(errnum));
+		fprintf(stderr, "%s", strerror(errnum));
 	else
 		fprintf(stderr, "%s", errmsg);
+
 	fprintf(stderr, "\n");
 }
 
@@ -26,43 +29,48 @@ void	print_help() {
 		"                      allowed value\n\n");
 }
 
-int	print_log(t_slot *slots, int probe_per_hop, int next_to_print, int dest_ttl) {
-	char	buffer[256];
+/*
+ *	pph : probe_per_hop
+ *	ni	: next_index
+ *	*/
+int	print_log(t_slot *slots, int size, int pph, int ni, int dest_ttl) {
+	char	buffer[512];
+	char	host[256];
+	char	ip[256];
 	int		pos = 0;
-	int	print_count = 0;
+	float	rtt;
+	int		print_count = 0;
 
 	ft_memset(buffer, 0, sizeof(buffer));
-	for (int i = next_to_print; i < MAX_INFLIGHT + next_to_print; i++) {
+	for (int i = ni; i < MAX_INFLIGHT + ni && i < size; i++) {
+
 		if (slots[i].is_active) break ;
 		if (dest_ttl && slots[i].ttl > dest_ttl) break ;
-		if (!(slots[i].seq % probe_per_hop)) {
+
+		if (!(slots[i].seq % pph)) {
 			pos += sprintf(buffer + pos, "%2d ", slots[i].ttl);
 
 			if (!slots[i].is_timeout) {
-				char	host[256];
-				char	ip[256];
-
 				inet_ntop(AF_INET, &slots[i].ip_address.sin_addr, ip, INET_ADDRSTRLEN);
 				getnameinfo((struct sockaddr *)&slots[i].ip_address, sizeof(slots[i].ip_address), host, sizeof(host), NULL, 0, 0);
 
-				// 주소 출력
 				pos += sprintf(buffer + pos, "%s (%s) ", host, ip);
 			}
 		}
-		if (!slots[i].is_timeout) {
-			float	rtt;
 
+		if (!slots[i].is_timeout) {
 			rtt = (slots[i].recv_time.tv_sec - slots[i].sent_time.tv_sec) * 1000.0;
 			rtt += (slots[i].recv_time.tv_usec - slots[i].sent_time.tv_usec) / 1000.0;
 			pos += sprintf(buffer + pos, " %.3f ms ", rtt);
-			print_count++;
 		} else {
 			pos += sprintf(buffer + pos, " *");
-			print_count++;
 		}
-		if (slots[i].seq % probe_per_hop == probe_per_hop - 1) {
+
+		if (slots[i].seq % pph == pph - 1) {
 			pos += sprintf(buffer + pos, "\n");
 		}
+
+		print_count++;
 	}
 	write(1, buffer, ft_strlen(buffer));
 	return print_count;

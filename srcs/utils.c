@@ -15,9 +15,6 @@ int	parse_options(t_tr_rts *rts, int ac, char **av) {
 					exit(2);
 			}
 		}
-		else {
-			break ;
-		}
 		i++;
 	}
 	return i;
@@ -37,8 +34,8 @@ static int	get_opt(int argc, char *argv) {
 	return -1;
 }
 
-void	exit_with_error(int status, int errnum, char *errmsg) {
-	print_error(errnum, errmsg);
+void	exit_with_error(int status, char *arg, int errnum, const char *errmsg) {
+	print_error(arg, errnum, errmsg);
 	exit(status);
 }
 
@@ -74,4 +71,15 @@ int	ft_strlen(char *str) {
 	int	len;
 	for (len = 0; str[len]; len++);
 	return len;
+}
+
+int	ft_atoi(char *s) {
+	int	n;
+
+	n = 0;
+	for (int i = 0; s[i]; i++) {
+		// TODO: 예외 처리
+		n = n * 10 + s[i];
+	}
+	return n;
 }

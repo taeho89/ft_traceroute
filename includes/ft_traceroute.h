@@ -12,15 +12,17 @@
 # include <netinet/ip_icmp.h>
 # include <sys/time.h>
 # include <arpa/inet.h>
+# include <string.h>
+# include <errno.h>
 # include "utils.h"
 
-# define DFL_MAX_TTL 30
+# define DFL_MAX_TTL 10
 # define DFL_PROBE_PER_HOB 3
 # define MAX_INFLIGHT 16
 # define DFL_TIMEOUT 3000
 
 typedef struct s_traceroute_rts t_tr_rts;
-typedef struct s_slot	t_slot;
+typedef struct s_slot			t_slot;
 
 struct s_slot {
 	// 송신 시 채우는 정보
@@ -38,39 +40,44 @@ struct s_slot {
 };
 
 struct s_traceroute_rts {
-	int	ttl;
 	int	max_ttl;
-	int	probe_per_hop;
+	int	pph;	// probe_per_hop
 	int	timeout;
+	int	packetlen;
+
+	int	ttl;
 	int	port;
-	int	sockfd;
-	int	recv_sockfd;
 	int	pid;
 	int	seq;
-	t_slot	*inflight;
 
 	char	*origin_dest;
 	struct addrinfo		dest_info;
 	struct sockaddr_in	dest_addr;
 
-	struct timeval	send_time;
+	int	sockfd;
+	int	recv_sockfd;
+
+	t_slot	*inflight;
+	int		slot_size;
 };
 
 /* traceroute_output.c */
 void	print_help();
-void	print_error(int errnum, char *errmsg);
-void	print_recv_result(struct iphdr *ip, struct icmphdr *icmp, double rtt);
-int	print_log(t_slot *slots, int probe_per_hop, int next_to_print, int dest_ttl);
+void	print_error(char *arg, int errnum, const char *errmsg);
+int		print_log(t_slot *slots, int size, int pph, int ni, int dest_ttl);
 
 /* utils.c */
-int	parse_options(t_tr_rts *rts, int ac, char **av);
+int		parse_options(t_tr_rts *rts, int ac, char **av);
+void	exit_with_error(int status, char *arg, int errnum, const char *errmsg);
 
 /* init.c */
 void	init(t_tr_rts *rts);
 
 /* icmp.c */
 void	init_icmp_packet(t_tr_rts *rts, char *buf, int buf_size);
+int		checksum(void *packet, int len);
 
+/* packet.c */
 void	main_loop(t_tr_rts *rts);
 void	send_packet(t_tr_rts *rts);
 int		recv_packet(t_tr_rts *rts);

@@ -1,8 +1,6 @@
 #include "../includes/ft_traceroute.h"
 #include <netinet/ip_icmp.h>
 
-int	checksum(void *packet, int len);
-
 void	init_icmp_packet(t_tr_rts *rts, char *buf, int buf_size) {
 	struct icmphdr	hdr;
 
