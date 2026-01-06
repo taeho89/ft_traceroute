@@ -18,8 +18,9 @@
 
 # define DFL_MAX_TTL 10
 # define DFL_PROBE_PER_HOB 3
-# define MAX_INFLIGHT 16
 # define DFL_TIMEOUT 3000
+# define DFL_PACKLEN 60
+# define MAX_INFLIGHT 16
 
 typedef struct s_traceroute_rts t_tr_rts;
 typedef struct s_slot			t_slot;
@@ -74,7 +75,7 @@ void	exit_with_error(int status, char *arg, int errnum, const char *errmsg);
 void	init(t_tr_rts *rts);
 
 /* icmp.c */
-void	init_icmp_packet(t_tr_rts *rts, char *buf, int buf_size);
+void	init_icmp_packet(t_tr_rts *rts, char *buf);
 int		checksum(void *packet, int len);
 
 /* packet.c */

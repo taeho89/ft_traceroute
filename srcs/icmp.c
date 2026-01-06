@@ -1,7 +1,7 @@
 #include "../includes/ft_traceroute.h"
 #include <netinet/ip_icmp.h>
 
-void	init_icmp_packet(t_tr_rts *rts, char *buf, int buf_size) {
+void	init_icmp_packet(t_tr_rts *rts, char *buf) {
 	struct icmphdr	hdr;
 
 	ft_memset(&hdr, 0, sizeof(hdr));
@@ -10,7 +10,7 @@ void	init_icmp_packet(t_tr_rts *rts, char *buf, int buf_size) {
 	hdr.un.echo.id = htons(rts->pid);
 	hdr.un.echo.sequence = htons(rts->seq);
 	ft_memcpy(buf, &hdr, sizeof(hdr));
-	((struct icmphdr *)buf)->checksum = checksum(buf, buf_size);
+	((struct icmphdr *)buf)->checksum = checksum(buf, rts->packetlen);
 }
 
 int	checksum(void *packet, int len) {

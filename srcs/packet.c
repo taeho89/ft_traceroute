@@ -39,10 +39,10 @@ void	send_packet(t_tr_rts *rts) {
 				exit_with_error(1, NULL, errno, NULL);
 
 			ft_memset(packet, 0, sizeof(packet));
-			init_icmp_packet(rts, packet, sizeof(packet));
+			init_icmp_packet(rts, packet);
 
 			rts->dest_addr.sin_port = htons(rts->port++);
-			res = sendto(rts->sockfd, packet, sizeof(packet), 0,
+			res = sendto(rts->sockfd, packet, rts->packetlen, 0,
 				(struct sockaddr *)&rts->dest_addr, sizeof(rts->dest_addr));
 			if (res < 0) {
 				exit_with_error(1, NULL, errno, NULL);

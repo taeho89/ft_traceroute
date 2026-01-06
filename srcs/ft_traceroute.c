@@ -5,11 +5,25 @@
 
 int	main(int ac, char **av) {
 	t_tr_rts	rts;
+	int			opt;
 
+	if (ac == 1) {
+		print_help();
+		return 0;
+	}
 	ft_memset(&rts, 0, sizeof(t_tr_rts));
-	rts.origin_dest = av[1];
-	rts.packetlen = ft_atoi(av[2]);
-	parse_options(&rts, ac, av);
+	opt = parse_options(&rts, ac, av);
+	if (ac - opt == 2) {
+		rts.origin_dest = av[ac - 1];
+		rts.packetlen = DFL_PACKLEN;
+	} else if (ac - opt == 1) {
+		rts.origin_dest = av[ac - 2];
+		rts.packetlen = ft_atoi(av[ac - 1]);
+	} else {
+		print_help();
+		return 0;
+	}
+	printf("opt count: %d\n", opt);
 	
 	init(&rts);
 
@@ -28,4 +42,3 @@ int	main(int ac, char **av) {
 	free(rts.inflight);
 	return 0;
 }
-
