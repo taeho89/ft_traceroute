@@ -4,8 +4,9 @@
 #include <sys/socket.h>
 
 void	send_packet(t_tr_rts *rts) {
-	char	packet[64];
+	char	*packet;
 	int		inflight_count;
+	int		sockfd;
 
 	inflight_count = 0;
 	for (int i = 0; i < rts->seq; i++) {
@@ -19,33 +20,39 @@ void	send_packet(t_tr_rts *rts) {
 
 		int	probe = rts->seq % rts->pph;
 		while (probe < rts->pph) {
-			// 매번 포트 번호를 다르게 보내기 위하여 재생성
 			if (inflight_count == MAX_INFLIGHT) return ;
 
-			rts->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-			if (rts->sockfd == -1) {
-				exit_with_error(1, NULL, errno, NULL);
+			// 매번 포트 번호를 다르게 보내기 위하여 재생성
+			sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+			if (sockfd == -1) {
+				exit_with_error(rts, 1, NULL, errno, NULL);
 			}
 
 			int res = setsockopt(
-				rts->sockfd,
+				sockfd,
 				IPPROTO_IP,
 				IP_TTL,
 				&rts->ttl,
 				sizeof(rts->ttl)
 			);
+			if (res < 0) {
+				exit_with_error(rts, 1, NULL, errno, NULL);
+			}
 
-			if (res < 0) 
-				exit_with_error(1, NULL, errno, NULL);
-
-			ft_memset(packet, 0, sizeof(packet));
+			packet = malloc(rts->packetlen * sizeof(char));
+			if (!packet) {
+				exit_with_error(rts, 1, NULL, errno, NULL);
+			}
+			ft_memset(packet, 0, rts->packetlen);
 			init_icmp_packet(rts, packet);
 
 			rts->dest_addr.sin_port = htons(rts->port++);
-			res = sendto(rts->sockfd, packet, rts->packetlen, 0,
+			res = sendto(sockfd, packet, rts->packetlen, 0,
 				(struct sockaddr *)&rts->dest_addr, sizeof(rts->dest_addr));
 			if (res < 0) {
-				exit_with_error(1, NULL, errno, NULL);
+				// Network Error
+				rts->inflight[rts->seq++].is_error = 'N';
+				probe++;
 				continue ;
 			}
 
@@ -59,7 +66,7 @@ void	send_packet(t_tr_rts *rts) {
 			probe++;
 			inflight_count++;
 
-			close(rts->sockfd);
+			close(sockfd);
 		}
 		rts->ttl++;
 	}
@@ -74,12 +81,9 @@ int	recv_packet(t_tr_rts *rts) {
 
 	int	count;
 
-	struct timeval	timeout;
-	timeout.tv_sec = 3;
-	timeout.tv_usec = 0;
-	count = select(rts->recv_sockfd + 1, &r, NULL, NULL, &timeout);
+	count = select(rts->recv_sockfd + 1, &r, NULL, NULL, &rts->timeout);
 	if (count < 0) {
-		exit_with_error(1, NULL, errno, NULL);
+		exit_with_error(rts, 1, NULL, errno, NULL);
 	}
 
 	int	dest_probe = 0;

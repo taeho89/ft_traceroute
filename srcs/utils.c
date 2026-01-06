@@ -3,11 +3,11 @@
 static int	get_opt(int argc, char *argv);
 static void	move_back(int ac, char **av, int target);
 
-int	parse_options(t_tr_rts *rts, int ac, char **av) {
-	int	cnt;
-	int	c;
+t_arg	parse_options(t_tr_rts *rts, int ac, char **av) {
+	t_arg	arg;
+	int		c;
 
-	cnt = 0;
+	ft_memset(&arg, 0, sizeof(arg));
 	for (int i = 1; av[i]; i++) {
 		if (av[i][0] == '-') {
 			c = get_opt(i, av[i]);
@@ -18,12 +18,15 @@ int	parse_options(t_tr_rts *rts, int ac, char **av) {
 				default:
 					exit(2);
 			}
-			cnt++;
 		}
-		else
-		move_back(ac, av, i);
+		else {
+			if (!arg.host_pos)
+				arg.host_pos = i;
+			else
+				arg.packetlen_pos = i;
+		}
 	}
-	return cnt;
+	return arg;
 }
 
 static int	get_opt(int argc, char *argv) {
@@ -50,7 +53,10 @@ static void	move_back(int ac, char **av, int target) {
 	av[ac - 1] = tmp;
 }
 
-void	exit_with_error(int status, char *arg, int errnum, const char *errmsg) {
+void	exit_with_error(t_tr_rts *rts, int status, char *arg, int errnum, const char *errmsg) {
 	print_error(arg, errnum, errmsg);
+	if (rts->recv_sockfd)
+		close(rts->recv_sockfd);
+	free(rts->inflight);
 	exit(status);
 }

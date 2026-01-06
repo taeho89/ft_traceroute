@@ -18,12 +18,20 @@
 
 # define DFL_MAX_TTL 10
 # define DFL_PROBE_PER_HOB 3
-# define DFL_TIMEOUT 3000
+# define DFL_TIMEOUT 3
 # define DFL_PACKLEN 60
+# define MIN_PACKLEN 28
+# define MAX_PACKLEN 65000
 # define MAX_INFLIGHT 16
 
 typedef struct s_traceroute_rts t_tr_rts;
 typedef struct s_slot			t_slot;
+typedef struct s_arg			t_arg;
+
+struct s_arg {
+	int	host_pos;
+	int	packetlen_pos;
+};
 
 struct s_slot {
 	// 송신 시 채우는 정보
@@ -38,12 +46,13 @@ struct s_slot {
 	// 상태 관리
 	int		is_active;
 	int		is_timeout;
+	int		is_error;
 };
 
 struct s_traceroute_rts {
 	int	max_ttl;
 	int	pph;	// probe_per_hop
-	int	timeout;
+	struct timeval	timeout;
 	int	packetlen;
 
 	int	ttl;
@@ -55,7 +64,6 @@ struct s_traceroute_rts {
 	struct addrinfo		dest_info;
 	struct sockaddr_in	dest_addr;
 
-	int	sockfd;
 	int	recv_sockfd;
 
 	t_slot	*inflight;
@@ -68,11 +76,11 @@ void	print_error(char *arg, int errnum, const char *errmsg);
 int		print_log(t_slot *slots, int size, int pph, int ni, int dest_ttl);
 
 /* utils.c */
-int		parse_options(t_tr_rts *rts, int ac, char **av);
-void	exit_with_error(int status, char *arg, int errnum, const char *errmsg);
+t_arg	parse_options(t_tr_rts *rts, int ac, char **av);
+void	exit_with_error(t_tr_rts *rts, int status, char *arg, int errnum, const char *errmsg);
 
 /* init.c */
-void	init(t_tr_rts *rts);
+int		init(t_tr_rts *rts, char **argv, t_arg arg);
 
 /* icmp.c */
 void	init_icmp_packet(t_tr_rts *rts, char *buf);

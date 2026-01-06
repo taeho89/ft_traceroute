@@ -1,6 +1,6 @@
 #include "../includes/ft_traceroute.h"
 
-void	check_timeout(t_slot *slots, int slot_size, int timeout);
+void	check_timeout(t_slot *slots, int slot_size, struct timeval timeout);
 
 void	main_loop(t_tr_rts *rts) {
 	int	ni;	// next_index
@@ -22,7 +22,7 @@ void	main_loop(t_tr_rts *rts) {
 	}
 }
 
-void	check_timeout(t_slot *slots, int slot_size, int timeout) {
+void	check_timeout(t_slot *slots, int slot_size, struct timeval timeout) {
 	struct timeval	tv;
 	float 			rtt;
 
@@ -31,7 +31,7 @@ void	check_timeout(t_slot *slots, int slot_size, int timeout) {
 		if (!slots[i].is_active) continue ;
 		rtt = (tv.tv_sec - slots[i].sent_time.tv_sec) * 1000.0;
 		rtt += (tv.tv_usec - slots[i].sent_time.tv_usec) / 1000.0;
-		if (rtt > timeout) {
+		if (rtt > timeout.tv_sec * 1000.0 + timeout.tv_usec / 1000.0) {
 			slots[i].is_active = 0;
 			slots[i].is_timeout = 1;
 		}

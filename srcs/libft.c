@@ -34,10 +34,14 @@ int	ft_strlen(char *str) {
 
 int	ft_atoi(char *s) {
 	int	n;
+	int	i;
 
 	n = 0;
-	for (int i = 0; s[i]; i++) {
-		// TODO: 예외 처리
+	i = 0;
+	if (s[i] == '+') {
+		i++;
+	}
+	while (s[i] && s[i] >= '0' && s[i] < '9') {
 		n = n * 10 + s[i];
 	}
 	return n;

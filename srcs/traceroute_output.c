@@ -62,6 +62,8 @@ int	print_log(t_slot *slots, int size, int pph, int ni, int dest_ttl) {
 			rtt = (slots[i].recv_time.tv_sec - slots[i].sent_time.tv_sec) * 1000.0;
 			rtt += (slots[i].recv_time.tv_usec - slots[i].sent_time.tv_usec) / 1000.0;
 			pos += sprintf(buffer + pos, " %.3f ms ", rtt);
+		} else if (!slots[i].is_error) {
+			pos += sprintf(buffer + pos, " !%c", slots[i].is_error);
 		} else {
 			pos += sprintf(buffer + pos, " *");
 		}
