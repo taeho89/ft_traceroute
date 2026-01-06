@@ -46,9 +46,8 @@ void	send_packet(t_tr_rts *rts) {
 				(struct sockaddr *)&rts->dest_addr, sizeof(rts->dest_addr));
 			if (res < 0) {
 				// Network Error
-				rts->inflight[rts->seq++].is_error = 'N';
-				probe++;
-				continue ;
+				rts->inflight[rts->seq].is_error = 'N';
+				goto next;
 			}
 
 			slot = &rts->inflight[rts->seq];
@@ -57,10 +56,11 @@ void	send_packet(t_tr_rts *rts) {
 			gettimeofday(&slot->sent_time, NULL);
 			slot->is_active = 1;
 
-			rts->seq++;
-			probe++;
 			inflight_count++;
 
+		next:
+			rts->seq++;
+			probe++;
 			close(sockfd);
 		}
 		rts->ttl++;
