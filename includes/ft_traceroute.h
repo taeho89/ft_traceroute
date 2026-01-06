@@ -16,7 +16,7 @@
 # include <errno.h>
 # include "utils.h"
 
-# define DFL_MAX_TTL 10
+# define DFL_MAX_TTL 30
 # define DFL_PROBE_PER_HOB 3
 # define DFL_TIMEOUT 3
 # define DFL_PACKLEN 60
@@ -53,7 +53,8 @@ struct s_traceroute_rts {
 	int	max_ttl;
 	int	pph;	// probe_per_hop
 	struct timeval	timeout;
-	int	packetlen;
+	char	*packet;
+	int		packetlen;
 
 	int	ttl;
 	int	port;

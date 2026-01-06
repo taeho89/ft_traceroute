@@ -4,9 +4,8 @@
 #include <sys/socket.h>
 
 void	send_packet(t_tr_rts *rts) {
-	char	*packet;
-	int		inflight_count;
-	int		sockfd;
+	int				inflight_count;
+	int				sockfd;
 
 	inflight_count = 0;
 	for (int i = 0; i < rts->seq; i++) {
@@ -39,15 +38,11 @@ void	send_packet(t_tr_rts *rts) {
 				exit_with_error(rts, 1, NULL, errno, NULL);
 			}
 
-			packet = malloc(rts->packetlen * sizeof(char));
-			if (!packet) {
-				exit_with_error(rts, 1, NULL, errno, NULL);
-			}
-			ft_memset(packet, 0, rts->packetlen);
-			init_icmp_packet(rts, packet);
+			ft_memset(rts->packet, 0, rts->packetlen);
+			init_icmp_packet(rts, rts->packet);
 
 			rts->dest_addr.sin_port = htons(rts->port++);
-			res = sendto(sockfd, packet, rts->packetlen, 0,
+			res = sendto(sockfd, rts->packet, rts->packetlen, 0,
 				(struct sockaddr *)&rts->dest_addr, sizeof(rts->dest_addr));
 			if (res < 0) {
 				// Network Error
@@ -75,14 +70,19 @@ void	send_packet(t_tr_rts *rts) {
 int	recv_packet(t_tr_rts *rts) {
 	fd_set	r;
 	char	recv_packet[256];
+	struct timeval	timeout;
 
 	FD_ZERO(&r);
 	FD_SET(rts->recv_sockfd, &r);
 
 	int	count;
 
-	count = select(rts->recv_sockfd + 1, &r, NULL, NULL, &rts->timeout);
+	timeout = rts->timeout;
+	count = select(rts->recv_sockfd + 1, &r, NULL, NULL, &timeout);
 	if (count < 0) {
+		if (errno == EINTR) {
+			return 0;
+		}
 		exit_with_error(rts, 1, NULL, errno, NULL);
 	}
 
@@ -126,4 +126,3 @@ int	recv_packet(t_tr_rts *rts) {
 	}
 	return 0;
 }
-

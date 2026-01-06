@@ -42,7 +42,8 @@ int	ft_atoi(char *s) {
 		i++;
 	}
 	while (s[i] && s[i] >= '0' && s[i] < '9') {
-		n = n * 10 + s[i];
+		n = n * 10 + s[i] - '0';
+		i++;
 	}
 	return n;
 }

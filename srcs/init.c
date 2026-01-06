@@ -32,21 +32,25 @@ int	init(t_tr_rts *rts, char **argv, t_arg arg) {
 		   		"packetlen", argv[arg.packetlen_pos], 2, arg.packetlen_pos);
 			return -1;
 		}
+		if (rts->packetlen > MAX_PACKLEN) {
+			fprintf(stderr, "too big packetlen %d specified\n", rts->packetlen);
+			return -1;
+		}
+		if (rts->packetlen < MIN_PACKLEN) {
+			rts->packetlen = MIN_PACKLEN;
+		}
+		if (rts->packetlen < 0) {
+			rts->packetlen = DFL_PACKLEN;
+		}
 	}
-	if (rts->packetlen > MAX_PACKLEN) {
-		fprintf(stderr, "too big packetlen %d specified\n", rts->packetlen);
-		return -1;
-	}
-	if (rts->packetlen < MIN_PACKLEN) {
-		rts->packetlen = MIN_PACKLEN;
-	}
-	if (rts->packetlen < 0) {
+	else {
 		rts->packetlen = DFL_PACKLEN;
 	}
 	// 기본 값 설정
 	rts->max_ttl = DFL_MAX_TTL;
 	rts->pph = DFL_PROBE_PER_HOB;
 	rts->timeout.tv_sec = DFL_TIMEOUT;
+	rts->timeout.tv_usec = 0;
 	rts->pid = getpid();
 
 	rts->port = 33434;
@@ -56,7 +60,8 @@ int	init(t_tr_rts *rts, char **argv, t_arg arg) {
 	// Inlfight 배열 초기화
 	rts->slot_size = rts->max_ttl * rts->pph;
 	rts->inflight = malloc(rts->slot_size * sizeof(t_slot));
-	if (!rts->inflight) {
+	rts->packet = malloc(rts->packetlen * sizeof(char));
+	if (!rts->inflight || !rts->packet) {
 		exit_with_error(rts, 1, NULL, errno, NULL);
 	}
 	ft_memset(rts->inflight, 0, rts->slot_size * sizeof(t_slot));

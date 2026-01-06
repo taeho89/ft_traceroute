@@ -35,5 +35,6 @@ int	main(int ac, char **av) {
 
 	close(rts.recv_sockfd);
 	free(rts.inflight);
+	free(rts.packet);
 	return 0;
 }
