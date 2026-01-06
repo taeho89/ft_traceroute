@@ -1,23 +1,29 @@
 #include "../includes/ft_traceroute.h"
 
 static int	get_opt(int argc, char *argv);
+static void	move_back(int ac, char **av, int target);
 
 int	parse_options(t_tr_rts *rts, int ac, char **av) {
-	int	i = 1;
+	int	cnt;
 	int	c;
 
-	while (av[i]) {
+	cnt = 0;
+	for (int i = 1; av[i]; i++) {
 		if (av[i][0] == '-') {
-			c = get_opt(ac, av[i]);
+			c = get_opt(i, av[i]);
 			switch (c) {
-				default:
+				case 'h':
 					print_help();
+					exit(0);
+				default:
 					exit(2);
 			}
+			cnt++;
 		}
-		i++;
+		else
+		move_back(ac, av, i);
 	}
-	return i;
+	return cnt;
 }
 
 static int	get_opt(int argc, char *argv) {
@@ -30,56 +36,21 @@ static int	get_opt(int argc, char *argv) {
 	if (!ft_strncmp(argv, "-?", 3)) {
 		return 'h';
 	}
-	fprintf(stderr, "Bad option `%s` (%d)\n", argv, argc);
+	fprintf(stderr, "Bad option `%s' (argc %d)\n", argv, argc);
 	return -1;
+}
+
+static void	move_back(int ac, char **av, int target) {
+	char	*tmp;
+
+	tmp = av[target];
+	for (int i = target; i < ac - 1; i++) {
+		av[i] = av[i + 1];
+	}
+	av[ac - 1] = tmp;
 }
 
 void	exit_with_error(int status, char *arg, int errnum, const char *errmsg) {
 	print_error(arg, errnum, errmsg);
 	exit(status);
-}
-
-void	ft_memset(void *s, int c, int n) {
-	char	*p = s;
-
-	for (int i = 0; i < n; i++) {
-		p[i] = c;
-	}
-}
-
-void	ft_memcpy(void *s1, void *s2, int n) {
-	char	*p1 = s1;
-	char	*p2 = s2;
-
-	for (int i = 0; i < n; i++) {
-		p1[i] = p2[i];
-	}
-}
-
-int	ft_strncmp(char *s1, char *s2, int n) {
-	int	i;
-
-	for (i = 0; i < n; i++) {
-		if (s1[i] != s2[i]) {
-			return s1[i] - s2[i];
-		}
-	}
-	return 0;
-}
-
-int	ft_strlen(char *str) {
-	int	len;
-	for (len = 0; str[len]; len++);
-	return len;
-}
-
-int	ft_atoi(char *s) {
-	int	n;
-
-	n = 0;
-	for (int i = 0; s[i]; i++) {
-		// TODO: 예외 처리
-		n = n * 10 + s[i];
-	}
-	return n;
 }

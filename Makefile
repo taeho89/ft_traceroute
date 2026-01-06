@@ -11,7 +11,8 @@ SRCS =	\
 		packet.c		\
 		icmp.c			\
 		init.c			\
-		utils.c
+		utils.c			\
+		libft.c
 
 OBJ_DIR = objs/
 OBJS = $(addprefix $(OBJ_DIR), $(SRCS:.c=.o))
