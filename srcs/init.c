@@ -24,7 +24,6 @@ int	init(t_tr_rts *rts, char **argv, t_arg arg) {
 
 	freeaddrinfo(info);
 
-	printf("host_pos: %d, packetlen_pos: %d\n", arg.host_pos, arg.packetlen_pos);
 	if (arg.packetlen_pos) {
 		rts->packetlen = ft_atoi(argv[arg.packetlen_pos]);
 		if (!rts->packetlen) {
