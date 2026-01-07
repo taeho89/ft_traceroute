@@ -43,6 +43,16 @@ static int	get_opt(int argc, char *argv) {
 	return -1;
 }
 
+void	*safe_malloc(t_tr_rts *rts, int size) {
+	void	*tmp;
+
+	tmp = malloc(size);
+	if (!tmp) {
+		exit_with_error(rts, 1, NULL, errno, NULL);
+	}
+	return tmp;
+}
+
 void	exit_with_error(t_tr_rts *rts, int status, char *arg, int errnum, const char *errmsg) {
 	print_error(arg, errnum, errmsg);
 	if (rts->recv_sockfd)
