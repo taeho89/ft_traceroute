@@ -14,7 +14,7 @@
 # include <arpa/inet.h>
 # include <string.h>
 # include <errno.h>
-# include "utils.h"
+# include "slibft.h"
 
 # define DFL_MAX_TTL 30
 # define DFL_PROBE_PER_HOB 3
@@ -79,6 +79,7 @@ int		print_log(t_slot *slots, int size, int pph, int ni, int dest_ttl);
 /* utils.c */
 t_arg	parse_options(t_tr_rts *rts, int ac, char **av);
 void	exit_with_error(t_tr_rts *rts, int status, char *arg, int errnum, const char *errmsg);
+void	*safe_malloc(t_tr_rts *rts, int size);
 
 /* init.c */
 int		init(t_tr_rts *rts, char **argv, t_arg arg);

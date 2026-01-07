@@ -1,4 +1,4 @@
-#include "../includes/utils.h"
+#include "../includes/slibft.h"
 
 void	ft_memset(void *s, int c, int n) {
 	char	*p = s;

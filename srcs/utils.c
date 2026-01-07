@@ -1,4 +1,5 @@
 #include "../includes/ft_traceroute.h"
+#include "limits.h"
 
 static int	get_opt(int argc, char *argv);
 

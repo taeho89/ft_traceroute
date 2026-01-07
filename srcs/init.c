@@ -59,11 +59,8 @@ int	init(t_tr_rts *rts, char **argv, t_arg arg) {
 
 	// Inlfight 배열 초기화
 	rts->slot_size = rts->max_ttl * rts->pph;
-	rts->inflight = malloc(rts->slot_size * sizeof(t_slot));
-	rts->packet = malloc(rts->packetlen * sizeof(char));
-	if (!rts->inflight || !rts->packet) {
-		exit_with_error(rts, 1, NULL, errno, NULL);
-	}
+	rts->inflight = safe_malloc(rts, rts->slot_size * sizeof(t_slot));
+	rts->packet = safe_malloc(rts, rts->packetlen * sizeof(char));
 	ft_memset(rts->inflight, 0, rts->slot_size * sizeof(t_slot));
 
 	// 응답 패킷 초기화
